@@ -4,18 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Connection {
-    private final List<Terminal> terminals = new ArrayList<>();
     private double voltage = 0.0;
+    private final List<Terminal> terminals = new ArrayList<>();
 
-    public void addTerminal(Terminal t) {
-        terminals.add(t);
-        t.connection = this; // <-- ВАЖНО!
+    public void addTerminal(Terminal terminal) {
+        if (!terminals.contains(terminal)) {
+            terminals.add(terminal);
+            terminal.setConnection(this);
+        }
     }
 
-    public void updateVoltage(double newVoltage) {
-        this.voltage = newVoltage;
-        for (Terminal t : terminals) {
-            t.voltage = newVoltage;
+    public void removeTerminal(Terminal terminal) {
+        terminals.remove(terminal);
+        if (terminal.getConnection() == this) {
+            terminal.setConnection(null);
         }
     }
 
@@ -27,10 +29,10 @@ public class Connection {
         return voltage;
     }
 
-    public void removeTerminal(Terminal t) {
-        terminals.remove(t);
-        if (terminals.isEmpty()) {
-            voltage = 0.0;
+    public void updateVoltage(double voltage) {
+        this.voltage = voltage;
+        for (Terminal terminal : terminals) {
+            // можно будет обновить компонент, если надо
         }
     }
 }
