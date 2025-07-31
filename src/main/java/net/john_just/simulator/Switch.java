@@ -29,15 +29,13 @@ public class Switch extends Component {
             Terminal bottom = terminals.get(i + polyCount);
 
             if (enabled) {
-                if (top.getConnection() != bottom.getConnection()) {
-                    top.connectTo(bottom);
-                }
+                top.connectTo(bottom);
             } else {
-                top.disconnect();
-                bottom.disconnect();
+                top.disconnectFrom(bottom);
             }
         }
     }
+
 
     @Override
     public Node createView() {
@@ -88,8 +86,8 @@ public class Switch extends Component {
 
     public void toggle() {
         enabled = !enabled;
+        update(0);  // сразу обновляем связи при переключении
     }
-
     public boolean isEnabled() {
         return enabled;
     }
