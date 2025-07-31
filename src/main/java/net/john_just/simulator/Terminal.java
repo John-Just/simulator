@@ -1,5 +1,7 @@
 package net.john_just.simulator;
 
+import java.util.ArrayList;
+
 public class Terminal {
     Connection connection;
 
@@ -11,10 +13,11 @@ public class Terminal {
 
     public void connectTo(Terminal other) {
         if (this.connection != null && other.connection != null) {
-            // Объединяем сети
             if (this.connection != other.connection) {
-                for (Terminal t : other.connection.getTerminals()) {
-                    this.connection.addTerminal(t);
+                // Объединяем: переносим все из другой в эту
+                Connection oldConn = other.connection;
+                for (Terminal t : new ArrayList<>(oldConn.getTerminals())) {
+                    this.connection.addTerminal(t); // обновляет ссылку на новую связь
                 }
             }
         } else if (this.connection != null) {
@@ -27,6 +30,7 @@ public class Terminal {
             newConn.addTerminal(other);
         }
     }
+
 
     public void setVoltage(double v) {
         if (connection != null) {
@@ -52,10 +56,10 @@ public class Terminal {
     public void disconnect() {
         if (connection != null) {
             connection.removeTerminal(this);
-            connection = new Connection();
-            connection.addTerminal(this);
+            connection = null;
         }
     }
+
 
     public Connection getConnection() {
         return connection;
