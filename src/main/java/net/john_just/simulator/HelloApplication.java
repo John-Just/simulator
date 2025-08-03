@@ -86,10 +86,12 @@ public class HelloApplication extends Application {
         ThreePhaseSource source = new ThreePhaseSource(230, 50);
         Lamp lamp = new Lamp();
         Switch sw = new Switch(1, RatedCurrent.A6);
+        Switch sw_2 = new Switch(1, RatedCurrent.A6);
 
         Node sourceNode = new SelectableComponent(source.createView());
         Node lampNode = new SelectableComponent(lamp.createView());
         Node swNode = new SelectableComponent(sw.createView());
+        Node sw_2_Node = new SelectableComponent(sw_2.createView());
 
 
         Terminal lampL = lamp.getTerminals().get(0);
@@ -98,11 +100,15 @@ public class HelloApplication extends Application {
         Terminal swIn = sw.getTerminals().get(0);
         Terminal swOut = sw.getTerminals().get(1);
 
+        Terminal sw_2In = sw_2.getTerminals().get(0);
+        Terminal sw_2Out = sw_2.getTerminals().get(1);
+
         Terminal sourceL = source.getTerminals().get(0); // L1
         Terminal sourceN = source.getTerminals().get(3); // N
 
         swIn.connectTo(sourceL);
-        lampL.connectTo(swOut);
+        sw_2In.connectTo(swOut);
+        lampL.connectTo(sw_2Out);
         lampN.connectTo(sourceN);
 
         scene.setOnMousePressed(e -> {
@@ -120,6 +126,7 @@ public class HelloApplication extends Application {
         root.getChildren().add(toggleButton);
         root.getChildren().add(sourceNode);
         root.getChildren().add(swNode);
+        root.getChildren().add(sw_2_Node);
         root.getChildren().add(lampNode);
 
         stage.setTitle("Electrical Simulator");
@@ -137,9 +144,14 @@ public class HelloApplication extends Application {
                 lastUpdate = now;
 
                 double t = (now - startNanoTime) / 1_000_000_000.0;
+
+                // 🧹 Очистка всех напряжений
+                resetAllVoltages(source, lamp, sw, sw_2);
+
                 source.update(t);
                 lamp.update(t);
                 sw.update(t);
+                sw_2.update(t);
             }
         }.start();
 
@@ -148,4 +160,13 @@ public class HelloApplication extends Application {
     public static void main(String[] args) {
         launch();
     }
+
+    private void resetAllVoltages(Component... components) {
+        for (Component c : components) {
+            for (Terminal t : c.getTerminals()) {
+                t.setVoltage(0.0);
+            }
+        }
+    }
+
 }
