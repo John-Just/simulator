@@ -10,6 +10,7 @@ import javafx.scene.text.Text;
 
 public class Lamp extends Component {
     private Rectangle bulb;
+    private double smoothedBrightness = 0.0;
 
     public Lamp() {
         super(2); // L и N
@@ -18,15 +19,22 @@ public class Lamp extends Component {
     @Override
     public void update(double time) {
         double u = terminals.get(0).getVoltage() - terminals.get(1).getVoltage();
+        double targetBrightness = Math.min(1.0, (u * u) / (230.0 * 230.0));
 
-        // Максимальное напряжение — 230 В, при нём максимальная яркость
-        double brightness = Math.min(1.0, Math.abs(u) / 230.0);
-        System.out.printf("\rBrightness: %.2f", brightness);
+// Плавное приближение (инерция)
+        smoothedBrightness += (targetBrightness - smoothedBrightness) * 0.1; // коэффициент 0.1 — сглаживание
+
+        bulb.setFill(Color.rgb(255, 255, 100, smoothedBrightness));
 
 
+        System.out.printf("\rBrightness: %.2f, u: %.2f", smoothedBrightness, u);
+
+/*
         if (bulb != null) {
             bulb.setFill(Color.rgb(255, 255, 100, brightness)); // жёлтый цвет с прозрачностью
         }
+
+ */
     }
 
     @Override
