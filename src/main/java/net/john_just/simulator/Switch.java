@@ -3,7 +3,6 @@ package net.john_just.simulator;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -27,7 +26,7 @@ public class Switch extends Component {
         for(int i = 0; i < polyCount ; i++) {
             Terminal in = getTerminals().get(i);
             Terminal out = getTerminals().get(i + polyCount);
-            contacts.add(new Contact(in, out));
+            contacts.add(new Contact(in, out, ContactType.NO));
         }
     }
 
@@ -62,11 +61,13 @@ public class Switch extends Component {
         for (int i = 0; i < polyCount; i++) {
             double baseX = i * spacing + spacing / 2;
 
-            Circle topPin = new Circle(baseX, 10, pinRadius, Color.DARKGRAY);
-            topPin.setStroke(Color.BLACK);
+            TerminalView topPin = new TerminalView(terminals.get(i));
+            topPin.setLayoutX(baseX);
+            topPin.setLayoutY(10);
 
-            Circle bottomPin = new Circle(baseX, boxHeight - 10, pinRadius, Color.DARKGRAY);
-            bottomPin.setStroke(Color.BLACK);
+            TerminalView bottomPin = new TerminalView(terminals.get(i + polyCount));
+            bottomPin.setLayoutX(baseX);
+            bottomPin.setLayoutY(boxHeight - 10);
 
             root.getChildren().addAll(topPin, bottomPin);
         }
@@ -86,7 +87,7 @@ public class Switch extends Component {
     public void toggle() {
         enabled = !enabled;
         for (Contact c : contacts) {
-            c.setClosed(enabled);
+            c.setActivated(enabled);
         }
     }
 }
