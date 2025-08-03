@@ -38,6 +38,8 @@ public class ThreePhaseSource extends Component {
 
         // ⚡ распространение напряжения
         VoltagePropagator.propagateFrom(terminals.get(0)); // L1
+        VoltagePropagator.propagateFrom(terminals.get(1)); // L2
+        VoltagePropagator.propagateFrom(terminals.get(2)); // L3
         VoltagePropagator.propagateFrom(terminals.get(3)); // N
     }
 
@@ -61,18 +63,18 @@ public class ThreePhaseSource extends Component {
 
         String[] labels = {"L1", "L2", "L3", "N", "PE"};
         for (int i = 0; i < terminals.size(); i++) {
-            Circle terminalCircle = new Circle(5, Color.DARKGRAY);
-            terminalCircle.setStroke(Color.BLACK);
-            terminalCircle.setLayoutX(10 + i * 25);
-            terminalCircle.setLayoutY(8);
+            TerminalView terminalView = new TerminalView(terminals.get(i));
+            terminalView.setLayoutX(10 + i * 25);
+            terminalView.setLayoutY(8);
 
             Text terminalLabel = new Text(labels[i]);
             terminalLabel.setFont(Font.font(10));
-            terminalLabel.setLayoutX(terminalCircle.getLayoutX() - 5);
+            terminalLabel.setLayoutX(terminalView.getLayoutX() - 5);
             terminalLabel.setLayoutY(30);
 
-            root.getChildren().addAll(terminalCircle, terminalLabel);
+            root.getChildren().addAll(terminalView, terminalLabel);
         }
+
 
         root.getChildren().add(label); // Текст поверх
 
