@@ -26,12 +26,21 @@ public class ThreePhaseSource extends Component {
     public void update(double time) {
         double w = 2 * Math.PI * frequency;
 
-        terminals.get(0).setVoltage(voltageRMS * Math.sqrt(2) * Math.sin(w * time + timeOffsetL1)); // L1
-        terminals.get(1).setVoltage(voltageRMS * Math.sqrt(2) * Math.sin(w * time + timeOffsetL2)); // L2
-        terminals.get(2).setVoltage(voltageRMS * Math.sqrt(2) * Math.sin(w * time + timeOffsetL3)); // L3
+        double v1 = voltageRMS * Math.sqrt(2) * Math.sin(w * time + timeOffsetL1);
+        double v2 = voltageRMS * Math.sqrt(2) * Math.sin(w * time + timeOffsetL2);
+        double v3 = voltageRMS * Math.sqrt(2) * Math.sin(w * time + timeOffsetL3);
+
+        terminals.get(0).setVoltage(v1); // L1
+        terminals.get(1).setVoltage(v2); // L2
+        terminals.get(2).setVoltage(v3); // L3
         terminals.get(3).setVoltage(0.0); // N
         terminals.get(4).setVoltage(0.0); // PE
+
+        // ⚡ распространение напряжения
+        VoltagePropagator.propagateFrom(terminals.get(0)); // L1
+        VoltagePropagator.propagateFrom(terminals.get(3)); // N
     }
+
 
 
     @Override
