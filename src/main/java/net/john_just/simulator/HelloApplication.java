@@ -13,6 +13,7 @@ import javafx.stage.Stage;
 import javafx.animation.AnimationTimer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +36,13 @@ public class HelloApplication extends Application {
         Scene scene = new Scene(layout, 1920, 1080);
 
         Map<String, List<ComponentTemplate>> componentGroups = new HashMap<>();
+        List<Component> allComponents = new ArrayList<>();
+
 
         componentGroups.put("Источники питания", List.of(
                 new ComponentTemplate("3-фазный источник", () -> {
                     ThreePhaseSource src = new ThreePhaseSource(230, 50);
+                    allComponents.add(src); // ⬅ добавляем компонент в список
                     return new SelectableComponent(src.createView());
                 })
         ));
@@ -46,18 +50,66 @@ public class HelloApplication extends Application {
         componentGroups.put("Коммутация", List.of(
                 new ComponentTemplate("Рубильник (1P)", () -> {
                     Switch sw = new Switch(1, RatedCurrent.A63);
+                    allComponents.add(sw); // ⬅ добавляем компонент в список
                     return new SelectableComponent(sw.createView());
                 }),
                 new ComponentTemplate("Рубильник (3P)", () -> {
                     Switch sw = new Switch(3, RatedCurrent.A63);
+                    allComponents.add(sw); // ⬅ добавляем компонент в список
                     return new SelectableComponent(sw.createView());
+                }),
+                new ComponentTemplate(" Кнопка НО", () -> {
+                    SB sb = new SB(List.of(ContactType.NO));
+                    allComponents.add(sb); // ⬅ добавляем компонент в список
+                    return new SelectableComponent(sb.createView());
+                }),
+                new ComponentTemplate(" Кнопка НЗ", () -> {
+                    SB sb = new SB(List.of(ContactType.NC));
+                    allComponents.add(sb); // ⬅ добавляем компонент в список
+                    return new SelectableComponent(sb.createView());
                 })
         ));
 
         componentGroups.put("Нагрузка", List.of(
                 new ComponentTemplate("Лампа ˜230В", () -> {
                     Lamp lamp = new Lamp();
+                    allComponents.add(lamp); // ⬅ добавляем компонент в список
                     return new SelectableComponent(lamp.createView());
+                }),
+                new ComponentTemplate("Лампа индикаторная белая", () -> {
+                    IndicatorLamp lamp = new IndicatorLamp(IndicatorColor.WHITE);
+                    allComponents.add(lamp);
+                    return new SelectableComponent(lamp.createView());
+                }),
+                new ComponentTemplate("Лампа индикаторная красная", () -> {
+                    IndicatorLamp lamp = new IndicatorLamp(IndicatorColor.RED);
+                    allComponents.add(lamp);
+                    return new SelectableComponent(lamp.createView());
+                }),
+                new ComponentTemplate("Лампа индикаторная зеленая", () -> {
+                    IndicatorLamp lamp = new IndicatorLamp(IndicatorColor.GREEN);
+                    allComponents.add(lamp);
+                    return new SelectableComponent(lamp.createView());
+                }),
+                new ComponentTemplate("Лампа индикаторная синяя", () -> {
+                    IndicatorLamp lamp = new IndicatorLamp(IndicatorColor.BLUE);
+                    allComponents.add(lamp);
+                    return new SelectableComponent(lamp.createView());
+                }),
+                new ComponentTemplate("Лампа индикаторная желтая", () -> {
+                    IndicatorLamp lamp = new IndicatorLamp(IndicatorColor.YELLOW);
+                    allComponents.add(lamp);
+                    return new SelectableComponent(lamp.createView());
+                }),
+                new ComponentTemplate("Реле", () -> {
+                    Relay relay = new Relay(List.of(ContactType.NO, ContactType.NC));
+                    allComponents.add(relay);
+                    return new SelectableComponent(relay.createView());
+                }),
+                new ComponentTemplate("Контактор", () -> {
+                    Сontactor contactor = new Сontactor(List.of(ContactType.NO, ContactType.NO, ContactType.NO, ContactType.NO));
+                    allComponents.add(contactor);
+                    return new SelectableComponent(contactor.createView());
                 })
         ));
 
@@ -111,6 +163,8 @@ public class HelloApplication extends Application {
         lampL.connectTo(sw_2Out);
         lampN.connectTo(sourceN);
 
+        allComponents.addAll(List.of(source, lamp, sw, sw_2));
+
         scene.setOnMousePressed(e -> {
             if (e.getTarget() == root) {
                 SelectionManager.clear();
@@ -145,13 +199,21 @@ public class HelloApplication extends Application {
 
                 double t = (now - startNanoTime) / 1_000_000_000.0;
 
-                // 🧹 Очистка всех напряжений
-                resetAllVoltages(source, lamp, sw, sw_2);
+                resetAllVoltages(allComponents);
 
-                source.update(t);
-                lamp.update(t);
-                sw.update(t);
-                sw_2.update(t);
+                // Шаг 1: обновляем состояния (например, замкнуты ли контакты)
+                for (Component c : allComponents) {
+                    c.update(t);
+                }
+
+                // Шаг 2: распространяем напряжение заново
+                for (Component c : allComponents) {
+                    for (Terminal tl : c.getTerminals()) {
+                        if (Math.abs(tl.getVoltage()) > 1e-3) { // если это источник
+                            VoltagePropagator.propagateFrom(tl);
+                        }
+                    }
+                }
             }
         }.start();
 
@@ -161,12 +223,11 @@ public class HelloApplication extends Application {
         launch();
     }
 
-    private void resetAllVoltages(Component... components) {
+    private void resetAllVoltages(List<Component> components) {
         for (Component c : components) {
             for (Terminal t : c.getTerminals()) {
                 t.setVoltage(0.0);
             }
         }
     }
-
 }
