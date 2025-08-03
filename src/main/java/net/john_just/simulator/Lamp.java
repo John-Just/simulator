@@ -4,73 +4,67 @@ import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 public class Lamp extends Component {
-    private Rectangle bulb;
+    private final Circle bulb;
     private double smoothedBrightness = 0.0;
 
     public Lamp() {
         super(2); // L и N
+        this.bulb = new Circle(20, Color.rgb(255, 255, 100, 0.2)); // по умолчанию тускло
     }
 
     @Override
     public void update(double time) {
-        double u = terminals.get(0).getVoltage() - terminals.get(1).getVoltage();
-        double targetBrightness = Math.min(1.0, (u * u) / (230.0 * 230.0));
+        Terminal a = terminals.get(0);
+        Terminal b = terminals.get(1);
 
-// Плавное приближение (инерция)
-        smoothedBrightness += (targetBrightness - smoothedBrightness) * 0.1; // коэффициент 0.1 — сглаживание
+        boolean aConnected = !a.getConnected().isEmpty();
+        boolean bConnected = !b.getConnected().isEmpty();
 
-        bulb.setFill(Color.rgb(255, 255, 100, smoothedBrightness));
-
-
-        System.out.printf("\rBrightness: %.2f, u: %.2f", smoothedBrightness, u);
-
-/*
-        if (bulb != null) {
-            bulb.setFill(Color.rgb(255, 255, 100, brightness)); // жёлтый цвет с прозрачностью
+        double u = 0.0;
+        if (aConnected && bConnected) {
+            u = a.getVoltage() - b.getVoltage();
         }
 
- */
+        double targetBrightness = Math.min(1.0, (u * u) / (230.0 * 230.0));
+        smoothedBrightness += (targetBrightness - smoothedBrightness) * 0.1;
+
+        bulb.setFill(Color.rgb(255, 255, 100, smoothedBrightness));
     }
 
     @Override
     public Node createView() {
         Pane root = new Pane();
-        root.setPrefSize(60, 40);
+        root.setPrefSize(80, 80);
 
-        Rectangle base = new Rectangle(60, 40);
-        base.setFill(Color.LIGHTGRAY);
-        base.setStroke(Color.BLACK);
+        bulb.setStroke(Color.BLACK);
 
-        bulb = new Rectangle(20, 20, Color.rgb(255, 255, 100, 0.2)); // изначально тусклая
-        bulb.setLayoutX(20);
-        bulb.setLayoutY(10);
-
+        // Метка
         Text label = new Text("Лампа");
-        label.setFont(Font.font(12));
-        label.setLayoutX(10);
-        label.setLayoutY(35);
+        label.setFont(Font.font(10));
+        label.setX(5);
+        label.setY(10);
+        root.getChildren().add(label);
 
-        root.getChildren().addAll(base, bulb, label);
+        // Круглая лампа
+        bulb.setCenterX(40);
+        bulb.setCenterY(40);
+        root.getChildren().add(bulb);
 
-        // Клеммы: слева и справа
-        for (int i = 0; i < terminals.size(); i++) {
-            Circle terminalCircle = new Circle(5, Color.DARKGRAY);
-            terminalCircle.setStroke(Color.BLACK);
-            terminalCircle.setLayoutX(i == 0 ? 0 : 60); // L слева, N справа
-            terminalCircle.setLayoutY(20);
-            root.getChildren().add(terminalCircle);
-        }
+        // Терминалы
+        TerminalView t1 = new TerminalView(getTerminals().get(0));
+        t1.setLayoutX(10);
+        t1.setLayoutY(70);
+        root.getChildren().add(t1);
 
-        Pane wrapper = new Pane(root);
-        wrapper.setLayoutX(100);
-        wrapper.setLayoutY(100);
+        TerminalView t2 = new TerminalView(getTerminals().get(1));
+        t2.setLayoutX(60);
+        t2.setLayoutY(70);
+        root.getChildren().add(t2);
 
-        return wrapper;
+        return root;
     }
 }
-
