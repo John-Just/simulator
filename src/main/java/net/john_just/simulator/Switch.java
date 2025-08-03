@@ -8,10 +8,14 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Switch extends Component {
     private final int polyCount;
     protected RatedCurrent ratedCurrent;
     private boolean enabled = false; // начально включён
+    private final List<Contact> contacts = new ArrayList<>();
     private final double pinRadius = 5;
     private final double spacing = 17.5;
     private final double boxHeight = 90;
@@ -20,20 +24,15 @@ public class Switch extends Component {
         super(2 * count);
         this.polyCount = count;
         this.ratedCurrent = ratedCurrent;
+        for(int i = 0; i < polyCount ; i++) {
+            Terminal in = getTerminals().get(i);
+            Terminal out = getTerminals().get(i + polyCount);
+            contacts.add(new Contact(in, out));
+        }
     }
 
     @Override
     public void update(double time) {
-        for (int i = 0; i < polyCount; i++) {
-            Terminal top = terminals.get(i);
-            Terminal bottom = terminals.get(i + polyCount);
-
-            if (enabled) {
-                top.connectTo(bottom);
-            } else {
-                top.disconnectFrom(bottom);
-            }
-        }
     }
 
 
@@ -86,9 +85,8 @@ public class Switch extends Component {
 
     public void toggle() {
         enabled = !enabled;
-        update(0);  // сразу обновляем связи при переключении
-    }
-    public boolean isEnabled() {
-        return enabled;
+        for (Contact c : contacts) {
+            c.setClosed(enabled);
+        }
     }
 }
